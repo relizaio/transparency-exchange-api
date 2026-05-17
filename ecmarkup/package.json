@@ -12,7 +12,8 @@
     "build-multipage": "ecmarkup --verbose spec.html --multipage out --max-clause-depth 6",
     "build-for-pdf": "ecmarkup --verbose spec.html out/index.html --assets external --assets-dir out --printable --max-clause-depth 6",
     "build": "npm run generate-spec && npm run build-only",
-    "pdf": "npm run generate-spec && mkdir -p out && npm run build-for-pdf && weasyprint out/index.html out/TEA.pdf",
+    "pdf": "npm run generate-spec && mkdir -p out && npm run build-for-pdf && prince-books --script ./node_modules/ecmarkup/js/print.js out/index.html -o out/TEA.pdf",
+    "pdf:weasyprint": "npm run generate-spec && mkdir -p out && npm run build-for-pdf && weasyprint out/index.html out/TEA.pdf",
     "clean": "rm -rf out spec.html"
   },
   "dependencies": {

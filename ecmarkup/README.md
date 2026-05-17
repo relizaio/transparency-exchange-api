@@ -15,7 +15,10 @@ already uses for ECMA-424 (CycloneDX).
 - `out/index.html` — the rendered single-page spec.
 - `out/multipage/` — the rendered multi-page spec.
 
-`npm run pdf` additionally produces `out/TEA.pdf` (requires `weasyprint`).
+`npm run pdf` additionally produces `out/TEA.pdf` using
+[Prince for Books](https://www.princexml.com/books/) &mdash; the same
+PDF engine ECMA TC54 uses for ECMA-424. `npm run pdf:weasyprint` uses
+[WeasyPrint](https://weasyprint.org/) as an open-source alternative.
 Pre-rendered review copies of both the HTML and PDF are committed under
 [`preview/`](./preview) on this experimental branch.
 

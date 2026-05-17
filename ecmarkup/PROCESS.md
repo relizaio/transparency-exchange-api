@@ -21,8 +21,17 @@ cd ecmarkup
 npm install
 npm run build               # HTML — out/index.html (single page)
 npm run build-multipage     # HTML — out/multipage/*.html
-npm run pdf                 # PDF  — out/TEA.pdf (requires weasyprint)
+npm run pdf                 # PDF  — out/TEA.pdf (requires prince-books)
+npm run pdf:weasyprint      # PDF  — alternative, uses open-source weasyprint
 ```
+
+The `pdf` script uses **Prince for Books** &mdash; the same PDF engine
+ECMA TC54 already uses for ECMA-424 &mdash; under the non-commercial
+license that ships with the unlicensed install. ECMA publication builds
+inject a paid license via the
+[`ghcr.io/ecma-tc54/princexml`](https://github.com/Ecma-TC54/ECMA-424/blob/main/.github/workflows/build.yml)
+container in CI; for working-group internal review the non-commercial
+license is sufficient. See `preview/README.md` for install instructions.
 
 ## How the document is assembled
 
