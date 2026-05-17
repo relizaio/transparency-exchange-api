@@ -19,15 +19,41 @@ npm install
 npm run pdf       # generates out/TEA.pdf via prince-books
 ```
 
-System dependency: `prince-books`
-([https://www.princexml.com/books/](https://www.princexml.com/books/)).
-On Ubuntu 24.04:
+System dependencies:
 
-```bash
-curl -fsSL -o /tmp/prince-books.deb \
-  https://princexml.com/download/prince-books_20240705-1_ubuntu24.04_amd64.deb
-sudo apt-get install -y /tmp/prince-books.deb
-```
+1. **`prince-books`**
+   ([https://www.princexml.com/books/](https://www.princexml.com/books/)).
+   On Ubuntu 24.04:
+
+    ```bash
+    curl -fsSL -o /tmp/prince-books.deb \
+      https://princexml.com/download/prince-books_20240705-1_ubuntu24.04_amd64.deb
+    sudo apt-get install -y /tmp/prince-books.deb
+    ```
+
+2. **Microsoft TrueType core fonts** (Arial, Verdana, Courier New) so the
+   rendered PDF embeds the same glyphs as ECMA-424 instead of
+   substituting open-source clones. Free for personal/non-commercial use
+   under Microsoft's EULA.
+
+    ```bash
+    echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" \
+      | sudo debconf-set-selections
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ttf-mscorefonts-installer
+    sudo fc-cache -fv
+    ```
+
+3. **IBM Plex** (open source, from IBM). Already pulled in by
+   ecmarkup's CSS; on Ubuntu install with:
+
+    ```bash
+    sudo apt-get install -y fonts-ibm-plex
+    sudo fc-cache -fv
+    ```
+
+Without (2) the PDF still renders cleanly, but Arial/Verdana/Courier New
+fall back to Liberation Sans / DejaVu Sans / DejaVu Sans Mono respectively.
+Without (3), IBM Plex Mono falls back to DejaVu Sans Mono.
 
 Note: this build runs under Prince for Books' built-in non-commercial
 license. Commercial / production publication runs (e.g. ECMA's own
