@@ -46,10 +46,15 @@ async function build() {
   }
   html += "</emu-intro>\n";
 
-  html += await openApiToEmu(path.join(ROOT, "spec/openapi.yaml"));
+  // Front matter (skeletons authored as excerpts)
+  html += readExcerpt("0x20-scope.html") + "\n";
+  html += readExcerpt("0x21-conformance.html") + "\n";
+  html += readExcerpt("0x22-normative-references.html") + "\n";
+  html += readExcerpt("0x23-terms-and-definitions.html") + "\n";
 
+  // Narrative leads the body of the spec.
   html += `<emu-clause id="sec-tea-narrative">\n<h1>Specification narrative</h1>\n`;
-  html += "<p>The following sections are derived from the working-group's authoring notes maintained as Markdown in the source repository.</p>\n";
+  html += "<p>The following sections are derived from the working group's authoring notes maintained as Markdown in the source repository.</p>\n";
   for (const [rel, idPrefix] of NARRATIVE_DOCS) {
     const full = path.join(ROOT, rel);
     if (!fs.existsSync(full)) {
@@ -60,6 +65,13 @@ async function build() {
     html += markdownToEmuClauses(fs.readFileSync(full, "utf-8"), idPrefix);
   }
   html += "</emu-clause>\n";
+
+  // Generated API surface + data model follow the narrative.
+  html += await openApiToEmu(path.join(ROOT, "spec/openapi.yaml"));
+
+  // Back matter
+  html += readExcerpt("1x10-bibliography.html") + "\n";
+  html += readExcerpt("1x20-colophon.html") + "\n";
 
   const TAGS_TO_SKIP = ["pre", "code", "script"];
   const placeholders = {};

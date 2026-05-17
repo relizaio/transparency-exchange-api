@@ -15,27 +15,42 @@ already uses for ECMA-424 (CycloneDX).
 - `out/index.html` — the rendered single-page spec.
 - `out/multipage/` — the rendered multi-page spec.
 
+`npm run pdf` additionally produces `out/TEA.pdf` (requires `weasyprint`).
+Pre-rendered review copies of both the HTML and PDF are committed under
+[`preview/`](./preview) on this experimental branch.
+
+See [`PROCESS.md`](./PROCESS.md) for working-group-facing notes:
+what's drafted vs. what still needs authoring, how to reorganise the
+Markdown layout, anchor reconciliation, and the editorial gaps that have
+to close before this can be submitted as an ECMA edition.
+
 Running on the current `main`, the rendered output groups content as:
 
 ```
-1   The TEA API                (generated from spec/openapi.yaml — paths by tag)
-    1.1 CLE
-    1.2 TEA Artifact
-    1.3 TEA Component
+1   Scope                      (excerpts/0x20-scope.html, skeleton)
+2   Conformance                (excerpts/0x21-conformance.html, skeleton)
+3   Normative references       (excerpts/0x22-normative-references.html, skeleton)
+4   Terms and definitions      (excerpts/0x23-terms-and-definitions.html, skeleton)
+5   Specification narrative    (imported from Markdown — narrative leads)
+    5.1 TEA Requirements        (doc/tea-requirements.md)
+    5.2 TEA Use Cases           (doc/tea-usecases.md)
+    5.3 Discovery               (discovery/readme.md)
+    5.4 Authentication          (auth/readme.md)
+    5.5 Consumer API flow       (api-flow/consumer.md)
+    5.6 Publisher API flow      (api-flow/publisher.md)
+    5.7 TEA Product             (tea-product/...)
     ...
-2   Data model                 (generated from components.schemas)
-    2.1 artifact
-    2.2 artifact-format
+6   The TEA API                (generated from spec/openapi.yaml — paths by tag)
+    6.1 CLE
+    6.2 TEA Artifact
+    6.3 TEA Component
     ...
-3   Specification narrative    (imported from Markdown)
-    3.1 TEA Requirements        (doc/tea-requirements.md)
-    3.2 TEA Use Cases           (doc/tea-usecases.md)
-    3.3 Discovery               (discovery/readme.md)
-    3.4 Authentication          (auth/readme.md)
-    3.5 Consumer API flow       (api-flow/consumer.md)
-    3.6 Publisher API flow      (api-flow/publisher.md)
-    3.7 TEA Product             (tea-product/...)
+7   Data model                 (generated from components.schemas)
+    7.1 artifact
+    7.2 artifact-format
     ...
+A   Bibliography               (excerpts/1x10-bibliography.html, skeleton)
+B   Colophon                   (excerpts/1x20-colophon.html, skeleton)
 ```
 
 ## How it works
