@@ -623,6 +623,85 @@ paths:
           $ref: "#/components/responses/406-no-acceptable-format"
       tags:
         - TEA Artifact
+  /artifact/{uuid}/latest/signature/download:
+    get:
+      description: |
+        Download the detached signature for the latest revision of a specific TEA Artifact.
+
+        Equivalent to the versioned signature endpoint, resolving to whichever revision
+        `/artifact/{uuid}/latest` currently reports.
+      operationId: downloadLatestArtifactSignature
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: UUID of TEA Artifact in the TEA server
+          schema:
+            "$ref": "#/components/schemas/uuid"
+        - $ref: "#/components/parameters/artifact-signature-media-type"
+      responses:
+        '200':
+          $ref: "#/components/responses/artifact-signature-content"
+        '302':
+          $ref: "#/components/responses/artifact-content-redirect"
+        '400':
+          $ref: "#/components/responses/400-invalid-request"
+        '404':
+          $ref: "#/components/responses/404-object-by-id-not-found"
+        '406':
+          $ref: "#/components/responses/406-no-acceptable-format"
+      tags:
+        - TEA Artifact
+  /artifact/{uuid}/{artifactVersion}/signature/download:
+    get:
+      description: |
+        Download the detached signature for one format of a specific revision of a
+        specific TEA Artifact.
+
+        This is the counterpart of the artifact content endpoint, for TEA servers that
+        host signatures themselves rather than referencing them externally. A server that
+        does so should publish this endpoint's absolute URL as the format's
+        `signatureUrl`.
+
+        Signatures are per format: each format of a revision is a distinct sequence of
+        bytes and therefore has its own signature. The `mediaType` parameter selects which
+        format's signature is returned, not the format of the signature itself.
+
+        This specification makes no assumption about the signature technology in use, and
+        does not model the signing algorithm, key, or certificate chain; the response is
+        the signature as published. A client that cannot determine how to verify what it
+        receives should treat the signature as unusable rather than as invalid.
+
+        `404` is returned both when the artifact revision does not exist and when the
+        selected format has no signature published.
+      operationId: downloadArtifactSignatureByVersion
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: UUID of TEA Artifact in the TEA server
+          schema:
+            "$ref": "#/components/schemas/uuid"
+        - name: artifactVersion
+          in: path
+          required: true
+          description: Version of TEA Artifact
+          schema:
+            type: integer
+        - $ref: "#/components/parameters/artifact-signature-media-type"
+      responses:
+        '200':
+          $ref: "#/components/responses/artifact-signature-content"
+        '302':
+          $ref: "#/components/responses/artifact-content-redirect"
+        '400':
+          $ref: "#/components/responses/400-invalid-request"
+        '404':
+          $ref: "#/components/responses/404-object-by-id-not-found"
+        '406':
+          $ref: "#/components/responses/406-no-acceptable-format"
+      tags:
+        - TEA Artifact
   /discovery:
     get:
       description: Discovery endpoint which resolves TEI into product release UUID.
@@ -1289,7 +1368,19 @@ components:
           format: url
         signatureUrl:
           type: string
-          description: Direct download URL for an external signature of the TEA Artifact
+          description: |
+            Direct download URL for a detached signature of this format of the TEA
+            Artifact.
+
+            As with `url`, this may be an external location or - for a TEA server that
+            hosts signatures itself - the absolute URL of that server's artifact signature
+            download endpoint for this format. The same rules apply: clients send their
+            TEA access token only when the URL is under the API base URL of the TEA server
+            that supplied it, and do not retain a pre-signed URL beyond the freshness
+            lifetime of the response that carried it.
+
+            This specification does not define which signature technology is used, nor
+            model the signing algorithm, key, or certificate chain.
           format: url
         checksums:
           type: array
@@ -1736,6 +1827,39 @@ components:
           schema:
             type: string
             format: binary
+    artifact-signature-content:
+      description: |
+        The detached signature for the selected format of the TEA Artifact revision.
+
+        The `Content-Type` is `application/octet-stream` unless the server knows a more
+        specific media type for the signature it holds, in which case it returns that.
+        This specification does not require servers to identify the signature technology.
+      headers:
+        Content-Disposition:
+          description: |
+            Suggested filename for the signature, as an `attachment` disposition per
+            RFC 6266.
+          schema:
+            type: string
+            examples:
+              - attachment; filename="log4j-core-2.24.3-cyclonedx.json.sig"
+        ETag:
+          description: |
+            Strong entity tag for the signature. The signature of an immutable artifact
+            revision is itself stable, unless the publisher re-signs the content.
+          schema:
+            type: string
+        Cache-Control:
+          description: Servers should mark signatures as cacheable.
+          schema:
+            type: string
+            examples:
+              - 'public, max-age=31536000, immutable'
+      content:
+        application/octet-stream:
+          schema:
+            type: string
+            format: binary
     artifact-content-redirect:
       description: |
         The artifact content is available at another location, for example object storage
@@ -1815,6 +1939,22 @@ components:
         RFC 9110 section 12, and falls back to a format of its choice when `Accept` does
         not constrain the result. In either case the `Content-Type` of the response states
         which format was returned.
+      in: query
+      required: false
+      schema:
+        type: string
+        examples:
+          - application%2Fvnd.cyclonedx%2Bjson
+    artifact-signature-media-type:
+      name: mediaType
+      description: |
+        Selects which of the artifact revision's `formats` the returned signature applies
+        to, by that format's `mediaType`. This is the media type of the signed content,
+        not of the signature. Provide it as a URL-encoded string per RFC 3986.
+
+        When omitted, the server selects a format of its choice. Requests that need a
+        specific format's signature should always supply this parameter, since the
+        response does not otherwise state which format was signed.
       in: query
       required: false
       schema:
