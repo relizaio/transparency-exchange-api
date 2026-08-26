@@ -34,7 +34,7 @@ Where a service does authenticate, interoperability requires that every TEA clie
 authenticate against every TEA server without server-specific code. This specification therefore
 defines a single mandatory baseline and leaves everything above it optional:
 
-* A TEA server that requires authentication __shall__ implement the token endpoint (`POST /auth`)
+* A TEA server that requires authentication __shall__ implement the token endpoint (`POST /token`)
   described below, and __shall__ support the API key credential exchange on it.
 * A TEA server __may__ support additional credential types on the same endpoint - federated
   identity from an external OpenID Connect or SAML provider, mutual TLS, or others.
@@ -52,10 +52,15 @@ Two consequences are worth stating explicitly, because they are what make the ba
 
 ## The token endpoint
 
-The token endpoint is `POST /auth`, relative to the TEA API base URL, and is defined in
+The token endpoint is `POST /token`, relative to the TEA API base URL, and is defined in
 [the OpenAPI specification](../spec/openapi.yaml). It is an OAuth 2.0 token endpoint as defined
 in [RFC 6749](https://www.rfc-editor.org/rfc/rfc6749) section 3.2; this specification constrains
 which grant types a conforming server has to accept, and adds nothing to the wire format.
+
+RFC 6749 leaves the location of the token endpoint outside its scope - `/token` appears only in its
+examples - so TEA fixes the path here rather than requiring clients to discover it. TEA defines no
+OAuth 2.0 authorization endpoint (RFC 6749 section 3.1): there is no interactive, browser-based
+consent step in TEA, and every grant type described below is one a client can complete on its own.
 
 ### API key exchange (mandatory)
 
@@ -69,7 +74,7 @@ authentication as described in RFC 6749 section 2.3.1, which requires a token en
 Basic for clients that were issued a secret.
 
 ```http
-POST /auth HTTP/1.1
+POST /token HTTP/1.1
 Host: tea.example.com
 Authorization: Basic dGVhLWtleS0xMjM6czNjcjN0
 Content-Type: application/x-www-form-urlencoded

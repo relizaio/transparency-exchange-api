@@ -548,7 +548,7 @@ paths:
           $ref: "#/components/responses/404-object-by-id-not-found"
       tags:
         - TEA Artifact
-  /auth:
+  /token:
     post:
       description: |
         Exchange credentials for a TEA access token.
@@ -566,7 +566,7 @@ paths:
 
         The access token is opaque to the client: clients shall not inspect, parse, or
         depend on its contents.
-      operationId: authToken
+      operationId: requestToken
       security:
         - basicAuth: []
         - {}
@@ -578,11 +578,11 @@ paths:
               $ref: "#/components/schemas/token-request"
       responses:
         '200':
-          $ref: "#/components/responses/auth-token-issued"
+          $ref: "#/components/responses/token-issued"
         '400':
-          $ref: "#/components/responses/400-auth-error"
+          $ref: "#/components/responses/400-token-error"
         '401':
-          $ref: "#/components/responses/401-auth-error"
+          $ref: "#/components/responses/401-token-error"
       tags:
         - TEA Authentication
   /discovery:
@@ -1725,7 +1725,7 @@ components:
         Authentication required, or the presented access token is expired, revoked, or
         otherwise invalid. Servers shall include a `WWW-Authenticate` header as defined
         in RFC 6750 section 3. On the `invalid_token` error a client may obtain a fresh
-        token from `/auth` and retry the request once (RFC 6750 section 3.1).
+        token from `/token` and retry the request once (RFC 6750 section 3.1).
       headers:
         WWW-Authenticate:
           description: Bearer challenge, as defined in RFC 6750 section 3.
@@ -1734,7 +1734,7 @@ components:
             example: Bearer realm="tea", error="invalid_token", error_description="The access token expired"
       content:
         application/json: {}
-    auth-token-issued:
+    token-issued:
       description: Credentials accepted, access token issued
       headers:
         Cache-Control:
@@ -1746,7 +1746,7 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/token-response"
-    400-auth-error:
+    400-token-error:
       description: |
         The token request was malformed, used an unsupported grant type, or the
         credentials presented were not valid for the requested grant.
@@ -1754,7 +1754,7 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/token-error-response"
-    401-auth-error:
+    401-token-error:
       description: |
         Client authentication failed. Returned instead of 400 when the client attempted
         to authenticate using the `Authorization` header (RFC 6749 section 5.2).
@@ -2012,14 +2012,14 @@ components:
       type: http
       scheme: bearer
       description: |
-        A TEA access token obtained from `/auth`, presented as
+        A TEA access token obtained from `/token`, presented as
         `Authorization: Bearer <access_token>` (RFC 6750). This is the only credential
-        accepted on TEA endpoints other than `/auth`.
+        accepted on TEA endpoints other than `/token`.
     basicAuth:
       type: http
       scheme: basic
       description: |
-        API key credentials, presented to `/auth` only: the API key identifier as the
+        API key credentials, presented to `/token` only: the API key identifier as the
         user-id and the API key secret as the password (RFC 7617, RFC 6749 section
         2.3.1). Servers shall not accept API key credentials directly on other TEA
         endpoints; clients shall exchange them for an access token first.
