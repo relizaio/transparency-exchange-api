@@ -588,9 +588,10 @@ paths:
         Download the content of a specific revision of a specific TEA Artifact.
 
         This endpoint returns the bytes of one `format` of the artifact revision. It is
-        an alternative to the external `url` on that format, for TEA servers that host
-        artifact content themselves; a server that does so should publish this endpoint's
-        absolute URL as the format's `url`, so that clients need only follow `url`.
+        how a TEA server hosts artifact content itself: a format that has no external
+        `url` is retrieved from here, selected by its `mediaType`. A format that has a
+        `url` is retrieved from that external location instead, and this endpoint is not
+        required to serve it.
 
         A TEA access token is sent only to the TEA server's own API base URL. External
         `url` targets are retrieved without it - they are either openly accessible,
@@ -664,9 +665,10 @@ paths:
         specific TEA Artifact.
 
         This is the counterpart of the artifact content endpoint, for TEA servers that
-        host signatures themselves rather than referencing them externally. A server that
-        does so should publish this endpoint's absolute URL as the format's
-        `signatureUrl`.
+        host signatures themselves: a format that has no external `signatureUrl` is
+        retrieved from here, selected by its `mediaType`. A format that has a
+        `signatureUrl` is retrieved from that external location instead, and this
+        endpoint is not required to serve it.
 
         Signatures are per format: each format of a revision is a distinct sequence of
         bytes and therefore has its own signature. The `mediaType` parameter selects which
@@ -1345,44 +1347,50 @@ components:
     artifact-format:
       type: object
       description: A security-related document in a specific format
+      required:
+        - mediaType
       properties:
         mediaType:
           type: string
           description: |
             The Media Type of the document.
 
-            A media type Shall appear at most once across the `formats` of a single TEA
-            Artifact revision, so that a format can be selected unambiguously by media
-            type when downloading its content.
+            A media type shall appear at most once across the `formats` of a single TEA
+            Artifact revision, so that every format can be selected unambiguously by
+            media type when downloading its content or its signature.
         description:
           type: string
           description: A free text describing the TEA Artifact
         url:
           type: string
           description: |
-            Direct download URL for the TEA Artifact.
+            External download URL for this format of the TEA Artifact.
 
-            This may be an external location, or - for a TEA server that hosts artifact
-            content itself - the absolute URL of that server's artifact download endpoint
-            for this format. Clients therefore need only follow this URL, and send their
-            TEA access token only when it is under the API base URL of the TEA server that
-            supplied it.
+            This is always a location outside the TEA API. When present, clients shall
+            retrieve the content from it. When absent, the TEA server hosts the content
+            itself and clients shall retrieve it from the artifact download endpoint,
+            `/artifact/{uuid}/{artifactVersion}/download`, selecting this format by its
+            `mediaType`.
 
-            When the URL is pre-signed it may expire; clients should not retain it beyond
-            the freshness lifetime of the response that carried it.
+            A TEA access token is sent only to the TEA server's own API base URL, never
+            to an external URL: external locations are either openly accessible,
+            pre-signed, or covered by credentials the client arranges separately. When
+            the URL is pre-signed it may expire; clients should not retain it beyond the
+            freshness lifetime of the response that carried it.
           format: url
         signatureUrl:
           type: string
           description: |
-            Direct download URL for a detached signature of this format of the TEA
+            External download URL for a detached signature of this format of the TEA
             Artifact.
 
-            As with `url`, this may be an external location or - for a TEA server that
-            hosts signatures itself - the absolute URL of that server's artifact signature
-            download endpoint for this format. The same rules apply: clients send their
-            TEA access token only when the URL is under the API base URL of the TEA server
-            that supplied it, and do not retain a pre-signed URL beyond the freshness
-            lifetime of the response that carried it.
+            As with `url`, this is always a location outside the TEA API. When present,
+            clients shall retrieve the signature from it. When absent, clients shall
+            retrieve it from the artifact signature download endpoint,
+            `/artifact/{uuid}/{artifactVersion}/signature/download`, selecting this
+            format by its `mediaType`; that endpoint returns `404` when no signature is
+            published for the format. The same access token and pre-signed URL rules
+            as for `url` apply.
 
             This specification does not define which signature technology is used, nor
             model the signing algorithm, key, or certificate chain.
@@ -1871,8 +1879,7 @@ components:
       description: |
         The content of the requested TEA Artifact format.
 
-        The `Content-Type` is the `mediaType` of the format returned, falling back to
-        `application/octet-stream` only when the format declares no media type.
+        The `Content-Type` is the `mediaType` of the format returned.
       headers:
         Content-Disposition:
           $ref: "#/components/headers/artifact-content-disposition"
